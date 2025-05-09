@@ -44,7 +44,7 @@
 			const userID = params.get("user");
 			if (!userID) return;
 			const content = `<@${userID}> finished Tic-Tac-Toe: **${outcome.toUpperCase()}**`;
-			await fetch("https://discord.com/api/webhooks/1370449442380972073/xGpYIJdp1wryjeFieBGUCnLsNhk9BPRdNeKZYv5JRrsIPvnxkjAVFrjdj_MtOwp1aBr7", {
+			await fetch("https://discord.com/api/webhooks/1370459104199446648/UAKMJfbuQoVmdTQFGQSbrO9ikyP-5O_Oa_DDl5TWbpfCbDJfeArvqrrrAzs3ztmNNa0i", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ content })
