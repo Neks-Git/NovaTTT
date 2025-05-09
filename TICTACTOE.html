@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Nova Tic Tac Toe</title>
+	<style>
+		body {
+			font-family: sans-serif;
+			text-align: center;
+			margin-top: 50px;
+		}
+		#board {
+			display: grid;
+			grid-template-columns: repeat(3, 100px);
+			grid-template-rows: repeat(3, 100px);
+			gap: 5px;
+			margin: 0 auto;
+			width: 310px;
+		}
+		.cell {
+			background: #eee;
+			font-size: 2em;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body>
+	<h1>Tic Tac Toe: You (X) vs Nova (O)</h1>
+	<div id="board"></div>
+	<h2 id="status"></h2>
+
+	<script>
+		const board = document.getElementById('board');
+		const status = document.getElementById('status');
+		let cells = Array(9).fill('');
+		let gameOver = false;
+
+		function renderBoard() {
+			board.innerHTML = '';
+			for (let i = 0; i < 9; i++) {
+				const cell = document.createElement('div');
+				cell.classList.add('cell');
+				cell.textContent = cells[i];
+				cell.dataset.index = i;
+				cell.onclick = () => playerMove(i);
+				board.appendChild(cell);
+			}
+		}
+
+		function checkWin(board, player) {
+			const wins = [
+				[0,1,2], [3,4,5], [6,7,8],
+				[0,3,6], [1,4,7], [2,5,8],
+				[0,4,8], [2,4,6]
+			];
+			return wins.some(combo => combo.every(i => board[i] === player));
+		}
+
+		function playerMove(i) {
+			if (cells[i] || gameOver) return;
+			cells[i] = 'X';
+			renderBoard();
+			if (checkWin(cells, 'X')) {
+				status.textContent = 'You win!';
+				gameOver = true;
+				return;
+			}
+			if (!cells.includes('')) {
+				status.textContent = "It's a draw!";
+				gameOver = true;
+				return;
+			}
+			setTimeout(botMove, 300);
+		}
+
+		function botMove() {
+			const best = minimax(cells, 'O');
+			cells[best.index] = 'O';
+			renderBoard();
+			if (checkWin(cells, 'O')) {
+				status.textContent = 'Bot wins!';
+				gameOver = true;
+			} else if (!cells.includes('')) {
+				status.textContent = "It's a draw!";
+				gameOver = true;
+			}
+		}
+
+		function minimax(newBoard, player) {
+			const availSpots = newBoard.map((v, i) => v === '' ? i : null).filter(i => i !== null);
+
+			if (checkWin(newBoard, 'X')) {
+				return { score: -10 };
+			} else if (checkWin(newBoard, 'O')) {
+				return { score: 10 };
+			} else if (availSpots.length === 0) {
+				return { score: 0 };
+			}
+
+			let moves = [];
+
+			for (let i = 0; i < availSpots.length; i++) {
+				let move = {};
+				move.index = availSpots[i];
+				newBoard[availSpots[i]] = player;
+
+				if (player === 'O') {
+					let result = minimax(newBoard, 'X');
+					move.score = result.score;
+				} else {
+					let result = minimax(newBoard, 'O');
+					move.score = result.score;
+				}
+
+				newBoard[availSpots[i]] = '';
+				moves.push(move);
+			}
+
+			let bestMove;
+			if (player === 'O') {
+				let bestScore = -Infinity;
+				for (let i = 0; i < moves.length; i++) {
+					if (moves[i].score > bestScore) {
+						bestScore = moves[i].score;
+						bestMove = i;
+					}
+				}
+			} else {
+				let bestScore = Infinity;
+				for (let i = 0; i < moves.length; i++) {
+					if (moves[i].score < bestScore) {
+						bestScore = moves[i].score;
+						bestMove = i;
+					}
+				}
+			}
+
+			return moves[bestMove];
+		}
+
+		renderBoard();
+	</script>
+</body>
+</html>
