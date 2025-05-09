@@ -38,6 +38,19 @@
 		let cells = Array(9).fill('');
 		let gameOver = false;
 
+		// helper to POST result to Discord webhook
+		async function reportResult(outcome) {
+			const params = new URLSearchParams(window.location.search);
+			const userID = params.get("user");
+			if (!userID) return;
+			const content = `<@${userID}> finished Tic-Tac-Toe: **${outcome.toUpperCase()}**`;
+			await fetch("https://discord.com/api/webhooks/1370449442380972073/xGpYIJdp1wryjeFieBGUCnLsNhk9BPRdNeKZYv5JRrsIPvnxkjAVFrjdj_MtOwp1aBr7", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ content })
+			});
+		}
+
 		function renderBoard() {
 			board.innerHTML = '';
 			for (let i = 0; i < 9; i++) {
@@ -50,13 +63,13 @@
 			}
 		}
 
-		function checkWin(board, player) {
+		function checkWin(boardState, player) {
 			const wins = [
 				[0,1,2], [3,4,5], [6,7,8],
 				[0,3,6], [1,4,7], [2,5,8],
 				[0,4,8], [2,4,6]
 			];
-			return wins.some(combo => combo.every(i => board[i] === player));
+			return wins.some(combo => combo.every(i => boardState[i] === player));
 		}
 
 		function playerMove(i) {
@@ -66,11 +79,13 @@
 			if (checkWin(cells, 'X')) {
 				status.textContent = 'You win!';
 				gameOver = true;
+				reportResult("win");
 				return;
 			}
 			if (!cells.includes('')) {
 				status.textContent = "It's a draw!";
 				gameOver = true;
+				reportResult("draw");
 				return;
 			}
 			setTimeout(botMove, 300);
@@ -81,16 +96,20 @@
 			cells[best.index] = 'O';
 			renderBoard();
 			if (checkWin(cells, 'O')) {
-				status.textContent = 'Bot wins!';
+				status.textContent = 'Nova wins!';
 				gameOver = true;
+				reportResult("lose");
 			} else if (!cells.includes('')) {
 				status.textContent = "It's a draw!";
 				gameOver = true;
+				reportResult("draw");
 			}
 		}
 
 		function minimax(newBoard, player) {
-			const availSpots = newBoard.map((v, i) => v === '' ? i : null).filter(i => i !== null);
+			const availSpots = newBoard
+				.map((v, i) => v === '' ? i : null)
+				.filter(i => i !== null);
 
 			if (checkWin(newBoard, 'X')) {
 				return { score: -10 };
